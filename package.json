@@ -1,0 +1,40 @@
+{
+  "name": "solver-network",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/reservoirprotocol/solver-network.git",
+  "author": "Uneven Labs",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.6",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.10",
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "dd-trace": "^5.24.0",
+    "fastify": "^5.1.0",
+    "viem": "^2.21.38"
+  }
+}
