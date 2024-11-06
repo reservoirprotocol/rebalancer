@@ -1,0 +1,7 @@
+{
+    "name": "@solver-network/api",
+    "description": "A Typescript REST Client API for the Solver Network",
+    "version": "0.0.1",
+    "author": "Uneven Labs",
+    "license": "MIT"
+}

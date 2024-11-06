@@ -33,8 +33,9 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "@ponder/utils": "^0.2.2",
     "dd-trace": "^5.24.0",
     "fastify": "^5.1.0",
-    "viem": "^2.21.38"
+    "viem": "^2.21.40"
   }
 }
