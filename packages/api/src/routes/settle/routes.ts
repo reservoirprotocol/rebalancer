@@ -11,9 +11,7 @@ export default async function quoteController(fastify: FastifyInstance) {
           properties: {
             requestId: { type: "string", description: "Request ID" },
           },
-          required: [
-            "requestId",
-          ],
+          required: ["requestId"],
         },
         response: {
           200: {
@@ -26,9 +24,7 @@ export default async function quoteController(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const {
-        requestId,
-      } = request.body as any;
+      const { requestId } = request.body as any;
 
       // Using requestId fetch the transaction details from db
       const transactionDetails = await getTransactionDetails(requestId);
@@ -37,10 +33,11 @@ export default async function quoteController(fastify: FastifyInstance) {
       const transactionService = new TransactionService();
 
       // Generate the quote response
-      const transactionHash = await transactionService.sendTransaction(transactionDetails);
+      const transactionHash =
+        await transactionService.sendTransaction(transactionDetails);
 
       // Send the response
       return reply.send({ transactionHash });
-    }
+    },
   );
 }

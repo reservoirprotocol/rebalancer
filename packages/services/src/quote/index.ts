@@ -1,4 +1,11 @@
-import { http, PublicClient, createPublicClient, zeroAddress, erc20Abi, encodeFunctionData } from "viem";
+import {
+  http,
+  PublicClient,
+  createPublicClient,
+  zeroAddress,
+  erc20Abi,
+  encodeFunctionData,
+} from "viem";
 import { QuoteParams } from "./types";
 import { blockTime } from "./constants";
 
@@ -11,10 +18,15 @@ export class Quote {
   private destinationCurrency: string;
   private rpcClient: PublicClient;
 
-  constructor(
-    quoteParams: QuoteParams,
-  ) {
-    const { recipientAddress, originChainId, destinationChainId, amount, originCurrency, destinationCurrency } = quoteParams;
+  constructor(quoteParams: QuoteParams) {
+    const {
+      recipientAddress,
+      originChainId,
+      destinationChainId,
+      amount,
+      originCurrency,
+      destinationCurrency,
+    } = quoteParams;
     this.recipientAddress = recipientAddress;
     this.originChainId = originChainId;
     this.destinationChainId = destinationChainId;
@@ -57,10 +69,10 @@ export class Quote {
         account: zeroAddress,
         to: this.recipientAddress as `0x${string}`,
         value: BigInt(0),
-        data
-      };  
+        data,
+      };
     }
-    const [ gasLimit, gasPrice ] = await Promise.all([
+    const [gasLimit, gasPrice] = await Promise.all([
       this.rpcClient.estimateGas(transactionObject),
       this.rpcClient.getGasPrice(),
     ]);

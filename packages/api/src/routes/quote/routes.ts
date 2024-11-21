@@ -54,7 +54,7 @@ export default async function quoteController(fastify: FastifyInstance) {
       const {
         requestId, // store requestId and recipientAddress in db to validate when making payment to bonded solver
         recipientAddress,
-        originChainId,  
+        originChainId,
         destinationChainId,
         originCurrency,
         destinationCurrency,
@@ -76,6 +76,6 @@ export default async function quoteController(fastify: FastifyInstance) {
 
       // Send the response
       return reply.send(quoteResponse);
-    }
+    },
   );
 }
