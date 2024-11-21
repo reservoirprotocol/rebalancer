@@ -1,3 +1,3 @@
-import registerFastifyRoutes from "./quote/controller";
+import registerFastifyRoutes from "./quote/routes";
 
 export default registerFastifyRoutes;
