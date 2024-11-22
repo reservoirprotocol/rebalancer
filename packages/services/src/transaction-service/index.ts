@@ -102,12 +102,4 @@ export class TransactionService implements ITransactionService {
       return hash;
     }
   }
-
-  private isEIP1559Transaction(
-    transaction: EIP1559RawTransaction | LegacyRawTransaction,
-  ): transaction is EIP1559RawTransaction {
-    return (
-      "maxFeePerGas" in transaction && "maxPriorityFeePerGas" in transaction
-    );
-  }
 }
