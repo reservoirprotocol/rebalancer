@@ -29,6 +29,10 @@ export class Quote {
     this.destinationCurrency = destinationCurrency;
 
     const rpcUrl = process.env.RPC_URLS?.[0] as string;
+
+    // This was a weird type error from viem, will remove this later
+    // Error: Types of property 'account' are incompatible.
+    // @ts-ignore
     this.rpcClient = createPublicClient({
       transport: http(rpcUrl),
     });

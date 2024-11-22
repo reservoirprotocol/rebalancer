@@ -4,11 +4,13 @@ import {
   WalletClient,
   http,
   PublicClient,
+  ByteArray,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { ITransactionService } from "./interface";
 import { loadBalance } from "@ponder/utils";
 import { EIP1559RawTransaction, LegacyRawTransaction } from "./types";
+import { isEIP1559Network } from "./constants";
 
 /**
  * Service for submitting transactions to the blockchain
@@ -46,6 +48,10 @@ export class TransactionService implements ITransactionService {
           (rpcUrls[chainId] as string[]).map((url: string) => http(url)),
         ),
       });
+
+      // This was a weird type error from viem, will remove this later
+      // Error: Type instantiation is excessively deep and possibly infinite
+      // @ts-ignore
       this.rpcClient[chainId] = createPublicClient({
         transport: http(rpcUrls[chainId][0]),
       });
@@ -56,9 +62,6 @@ export class TransactionService implements ITransactionService {
     transaction: Partial<EIP1559RawTransaction> | Partial<LegacyRawTransaction>,
     chainId: number,
   ): Promise<`0x${string}`> {
-    // TODO: Make this fetch from config
-    const isEIP1559Network = true;
-
     const solver = this.solver[chainId];
     const rpcClient = this.rpcClient[chainId];
 
@@ -66,28 +69,41 @@ export class TransactionService implements ITransactionService {
     // we will reuse the maxFeePerGas to be the gas price for legacy transactions as an optimization
     const [nonce, gas, feeData] = await Promise.all([
       rpcClient.getTransactionCount({
-      address: solver.account!.address,
-    }),
-    rpcClient.estimateGas({
-      ...transaction,
-    }),
-    // Fetch both EIP1559 fees and gas price concurrently
-    rpcClient.estimateFeesPerGas(), 
-  ]);
+        address: solver.account!.address,
+      }),
+      rpcClient.estimateGas({
+        ...transaction,
+      }),
+      // Fetch both EIP1559 fees and gas price concurrently
+      rpcClient.estimateFeesPerGas(),
+    ]);
 
     // Assign nonce and gas limit
     transaction.nonce = nonce;
     transaction.gas = gas;
 
-    if (isEIP1559Network) {
-      (transaction as EIP1559RawTransaction).maxFeePerGas = feeData.maxFeePerGas;
+    if (isEIP1559Network[chainId]) {
+      (transaction as EIP1559RawTransaction).maxFeePerGas =
+        feeData.maxFeePerGas;
       (transaction as EIP1559RawTransaction).maxPriorityFeePerGas =
         feeData.maxPriorityFeePerGas;
 
       const hash = await solver.sendTransaction({
         account: solver.account!,
         ...(transaction as EIP1559RawTransaction),
-        chain: null, // Setting this as null as RPC will detect the chain automatically
+        chain: null,
+        // This was a weird type error from viem, will remove this later
+        kzg: {
+          blobToKzgCommitment: function (blob: ByteArray): ByteArray {
+            throw new Error("Function not implemented.");
+          },
+          computeBlobKzgProof: function (
+            blob: ByteArray,
+            commitment: ByteArray,
+          ): ByteArray {
+            throw new Error("Function not implemented.");
+          },
+        },
       });
       return hash;
     } else {
@@ -98,6 +114,18 @@ export class TransactionService implements ITransactionService {
         account: solver.account!,
         ...(transaction as LegacyRawTransaction),
         chain: null,
+        // This was a weird type error from viem, will remove this later
+        kzg: {
+          blobToKzgCommitment: function (blob: ByteArray): ByteArray {
+            throw new Error("Function not implemented.");
+          },
+          computeBlobKzgProof: function (
+            blob: ByteArray,
+            commitment: ByteArray,
+          ): ByteArray {
+            throw new Error("Function not implemented.");
+          },
+        },
       });
       return hash;
     }

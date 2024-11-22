@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
-import { Quote } from "@services/quote";
-import { RedisClient } from "@database";
+import { Quote } from "@solver/services";
+import { RedisClient } from "@solver/database";
 import { QuoteRequest } from "./types";
 
 export default async function quoteController(fastify: FastifyInstance) {

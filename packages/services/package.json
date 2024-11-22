@@ -1,6 +1,6 @@
 {
-  "name": "@solver/api",
-  "description": "A Typescript REST Client API for the Solver",
+  "name": "@solver/services",
+  "description": "Services for the Solver",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@solver/database": "^1.0.0",
-    "@solver/services": "^1.0.0"
+    "@solver/api": "^1.0.0",
+    "@solver/database": "^1.0.0"
   }
 }

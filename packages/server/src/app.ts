@@ -1,7 +1,10 @@
-import express from "express";
+import * as express from "express";
 import fastify from "fastify";
-import registerFastifyRoutes from "@api/routes";
-import { errorHandler } from "@api/middleware/errorHandler";
+import {
+  errorHandler,
+  registerQuoteRoute,
+  registerSettleRoute,
+} from "@solver/api";
 
 const app = express();
 
@@ -11,9 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Mount Fastify instance
 const fastifyInstance = fastify({ logger: true });
-registerFastifyRoutes(fastifyInstance);
+registerQuoteRoute(fastifyInstance);
+registerSettleRoute(fastifyInstance);
 
-app.use("/api", async (req, res, next) => {
+app.use("/api", async (req: any, res: any, next: any) => {
   await fastifyInstance.ready();
   fastifyInstance.server.emit("request", req, res);
 });

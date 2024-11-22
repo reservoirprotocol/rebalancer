@@ -1,8 +1,7 @@
-// src/database/RedisClient.ts
 import { createClient, RedisClientType } from "redis";
-import { log } from "@utils/logger";
+import { log } from "@solver/utils";
 
-class RedisClient {
+export class RedisClient {
   private static instance: RedisClientType | null = null;
 
   // Initialize Redis connection
@@ -37,5 +36,3 @@ class RedisClient {
     }
   }
 }
-
-export default { RedisClient };

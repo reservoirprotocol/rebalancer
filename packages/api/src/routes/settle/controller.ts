@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { encodeFunctionData, erc20Abi, zeroAddress } from "viem";
-import { TransactionService } from "@services/transaction-service";
 import {
+  TransactionService,
   EIP1559RawTransaction,
   LegacyRawTransaction,
-} from "@services/transaction-service/types";
-import { RedisClient } from "@database";
+} from "@solver/services";
+import { RedisClient } from "@solver/database";
 import { QuoteRequest } from "../quote/types";
 
 export default async function settleController(fastify: FastifyInstance) {
@@ -34,9 +34,9 @@ export default async function settleController(fastify: FastifyInstance) {
       const { requestId } = request.body as any;
 
       // Using requestId fetch the transaction details from db
-      const transactionDetails = (await RedisClient.getInstance().get(
+      const transactionDetails = (await RedisClient.getInstance()).get(
         requestId,
-      )) as QuoteRequest | undefined;
+      ) as unknown as QuoteRequest | undefined;
 
       if (!transactionDetails) {
         return reply
@@ -51,7 +51,9 @@ export default async function settleController(fastify: FastifyInstance) {
         destinationCurrency,
       } = transactionDetails;
 
-      let transaction: EIP1559RawTransaction | LegacyRawTransaction;
+      let transaction:
+        | Partial<EIP1559RawTransaction>
+        | Partial<LegacyRawTransaction>;
 
       if (destinationCurrency === zeroAddress) {
         transaction = {

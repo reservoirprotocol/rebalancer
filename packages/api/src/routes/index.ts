@@ -1,3 +1,4 @@
-import registerFastifyRoutes from "./quote/routes";
+import registerQuoteRoute from "./quote/routes";
+import registerSettleRoute from "./settle/routes";
 
-export default registerFastifyRoutes;
+export { registerQuoteRoute, registerSettleRoute };
