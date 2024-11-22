@@ -1,4 +1,10 @@
-import { createWalletClient, http, Transaction, WalletClient } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  WalletClient,
+  http,
+  PublicClient,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { ITransactionService } from "./interface";
 import { loadBalance } from "@ponder/utils";
@@ -6,8 +12,6 @@ import { EIP1559RawTransaction, LegacyRawTransaction } from "./types";
 
 /**
  * Service for submitting transactions to the blockchain
- *
- * ## Details
  *
  * - The TransactionService is used to submit transactions to the blockchain.
  * - It is responsible for signing transactions, submitting them to the network, and handling the response.
@@ -18,44 +22,90 @@ import { EIP1559RawTransaction, LegacyRawTransaction } from "./types";
  *
  */
 export class TransactionService implements ITransactionService {
-  private solver: WalletClient;
+  private solver: Record<number, WalletClient> = {};
+  private rpcClient: Record<number, PublicClient> = {};
 
   constructor() {
     // Move these checks to config and append these values to the config
-    const rpcUrls = process.env.RPC_URLS?.split(",") ?? [];
-    if (rpcUrls.length === 0) {
+    let rpcUrls = JSON.parse(process.env.RPC_URLS ?? "{}") as Record<
+      number,
+      string[]
+    >;
+    if (rpcUrls === undefined || Object.keys(rpcUrls).length === 0) {
       throw new Error("RPC_URLS environment variable is not set");
     }
+
     const solverPrivateKey = process.env.SOLVER_PRIVATE_KEY! as `0x${string}`;
     if (!solverPrivateKey) {
       throw new Error("SOLVER_PRIVATE_KEY environment variable is not set");
     }
-    this.solver = createWalletClient({
-      account: privateKeyToAccount(solverPrivateKey),
-      transport: loadBalance(rpcUrls.map((url) => http(url))),
-    });
+    for (const chainId in rpcUrls) {
+      this.solver[chainId] = createWalletClient({
+        account: privateKeyToAccount(solverPrivateKey),
+        transport: loadBalance(
+          (rpcUrls[chainId] as string[]).map((url: string) => http(url)),
+        ),
+      });
+      this.rpcClient[chainId] = createPublicClient({
+        transport: http(rpcUrls[chainId][0]),
+      });
+    }
   }
 
   async sendTransaction(
-    transaction: EIP1559RawTransaction | LegacyRawTransaction,
+    transaction: Partial<EIP1559RawTransaction> | Partial<LegacyRawTransaction>,
+    chainId: number,
   ): Promise<`0x${string}`> {
     // TODO: Make this fetch from config
     const isEIP1559Network = true;
 
+    const solver = this.solver[chainId];
+    const rpcClient = this.rpcClient[chainId];
+
+    // calculate nonce
+    transaction.nonce = await rpcClient.getTransactionCount({
+      address: solver.account!.address,
+    });
+
+    // calculate gas limit
+    transaction.gas = await rpcClient.estimateGas({
+      ...transaction,
+    });
+
     if (isEIP1559Network) {
-      const hash = await this.solver.sendTransaction({
-        account: this.solver.account!,
+      // fetch gas price
+      const { maxFeePerGas, maxPriorityFeePerGas } =
+        await rpcClient.estimateFeesPerGas();
+
+      (transaction as EIP1559RawTransaction).maxFeePerGas = maxFeePerGas;
+      (transaction as EIP1559RawTransaction).maxPriorityFeePerGas =
+        maxPriorityFeePerGas;
+
+      const hash = await solver.sendTransaction({
+        account: solver.account!,
         ...(transaction as EIP1559RawTransaction),
         chain: null, // Setting this as null as RPC will detect the chain automatically
       });
       return hash;
     } else {
-      const hash = await this.solver.sendTransaction({
-        account: this.solver.account!,
+      // fetch gas price
+      (transaction as LegacyRawTransaction).gasPrice =
+        await rpcClient.getGasPrice();
+
+      const hash = await solver.sendTransaction({
+        account: solver.account!,
         ...(transaction as LegacyRawTransaction),
         chain: null,
       });
       return hash;
     }
+  }
+
+  private isEIP1559Transaction(
+    transaction: EIP1559RawTransaction | LegacyRawTransaction,
+  ): transaction is EIP1559RawTransaction {
+    return (
+      "maxFeePerGas" in transaction && "maxPriorityFeePerGas" in transaction
+    );
   }
 }

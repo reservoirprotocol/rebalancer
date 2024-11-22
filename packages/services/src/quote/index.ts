@@ -11,27 +11,21 @@ import { blockTime } from "./constants";
 
 export class Quote {
   private recipientAddress: string;
-  private originChainId: number;
   private destinationChainId: number;
   private amount: string;
-  private originCurrency: string;
   private destinationCurrency: string;
   private rpcClient: PublicClient;
 
   constructor(quoteParams: QuoteParams) {
     const {
       recipientAddress,
-      originChainId,
       destinationChainId,
       amount,
-      originCurrency,
       destinationCurrency,
     } = quoteParams;
     this.recipientAddress = recipientAddress;
-    this.originChainId = originChainId;
     this.destinationChainId = destinationChainId;
     this.amount = amount;
-    this.originCurrency = originCurrency;
     this.destinationCurrency = destinationCurrency;
 
     const rpcUrl = process.env.RPC_URLS?.[0] as string;
@@ -51,7 +45,7 @@ export class Quote {
      * returns fees as gasLimit * gasPrice + markup
      */
     let transactionObject;
-    if (this.destinationCurrency === "ETH") {
+    if (this.destinationCurrency === zeroAddress) {
       transactionObject = {
         account: zeroAddress,
         to: this.recipientAddress as `0x${string}`,

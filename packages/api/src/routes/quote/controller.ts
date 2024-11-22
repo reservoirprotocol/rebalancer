@@ -1,5 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Quote } from "@services/quote";
+import { RedisClient } from "@database";
+import { QuoteRequest } from "./types";
 
 export default async function quoteController(fastify: FastifyInstance) {
   fastify.post(
@@ -52,14 +54,18 @@ export default async function quoteController(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const {
-        requestId, // store requestId and recipientAddress in db to validate when making payment to bonded solver
+        requestId,
         recipientAddress,
         originChainId,
         destinationChainId,
         originCurrency,
         destinationCurrency,
         amount,
-      } = request.body as any;
+      } = request.body as QuoteRequest;
+
+      // Store the request details in Redis
+      const redisClient = await RedisClient.getInstance();
+      await redisClient.set(requestId, JSON.stringify(request.body));
 
       // Initialize the Quote instance
       const quote = new Quote({
