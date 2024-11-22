@@ -62,24 +62,27 @@ export class TransactionService implements ITransactionService {
     const solver = this.solver[chainId];
     const rpcClient = this.rpcClient[chainId];
 
-    // calculate nonce
-    transaction.nonce = await rpcClient.getTransactionCount({
+    // Fetch nonce, gas limit and gas price in parallel
+    // we will reuse the maxFeePerGas to be the gas price for legacy transactions as an optimization
+    const [nonce, gas, feeData] = await Promise.all([
+      rpcClient.getTransactionCount({
       address: solver.account!.address,
-    });
-
-    // calculate gas limit
-    transaction.gas = await rpcClient.estimateGas({
+    }),
+    rpcClient.estimateGas({
       ...transaction,
-    });
+    }),
+    // Fetch both EIP1559 fees and gas price concurrently
+    rpcClient.estimateFeesPerGas(), 
+  ]);
+
+    // Assign nonce and gas limit
+    transaction.nonce = nonce;
+    transaction.gas = gas;
 
     if (isEIP1559Network) {
-      // fetch gas price
-      const { maxFeePerGas, maxPriorityFeePerGas } =
-        await rpcClient.estimateFeesPerGas();
-
-      (transaction as EIP1559RawTransaction).maxFeePerGas = maxFeePerGas;
+      (transaction as EIP1559RawTransaction).maxFeePerGas = feeData.maxFeePerGas;
       (transaction as EIP1559RawTransaction).maxPriorityFeePerGas =
-        maxPriorityFeePerGas;
+        feeData.maxPriorityFeePerGas;
 
       const hash = await solver.sendTransaction({
         account: solver.account!,
@@ -89,8 +92,7 @@ export class TransactionService implements ITransactionService {
       return hash;
     } else {
       // fetch gas price
-      (transaction as LegacyRawTransaction).gasPrice =
-        await rpcClient.getGasPrice();
+      (transaction as LegacyRawTransaction).gasPrice = feeData.maxFeePerGas;
 
       const hash = await solver.sendTransaction({
         account: solver.account!,
