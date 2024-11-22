@@ -1,2 +1,2 @@
-export * from "./src/routes";
 export * from "./src/middleware";
+export * from "./src/routes";

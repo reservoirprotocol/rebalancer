@@ -5,12 +5,14 @@
       "@api": ["packages/api/src"],
       "@database": ["packages/database/src"],
       "@services": ["packages/services/src"],
-      "@utils": ["packages/utils/src"]
+      "@utils": ["packages/utils/src"],
+      "@server": ["packages/server/src"]
     },
     "module": "commonjs",
     "target": "es6",
     "outDir": "dist",
     "rootDir": "./",
-    "composite": true
+    "composite": true,
+    "skipLibCheck": true
   }
 }

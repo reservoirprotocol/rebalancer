@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import quoteController from "./controller";
 
-export default async function registerQuoteRoute(app: FastifyInstance) {
+export const registerQuoteRoute = async (app: FastifyInstance) => {
   await quoteController(app);
 }

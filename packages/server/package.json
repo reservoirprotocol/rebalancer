@@ -1,0 +1,14 @@
+{
+    "name": "@solver/server",
+    "description": "A Typescript Server for the Solver",
+    "version": "1.0.0",
+    "main": "app.js",
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "start": "node dist/app.js"
+    },
+    "dependencies": {
+      "@solver/api": "^1.0.0"
+    }
+  }
+  

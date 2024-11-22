@@ -3,13 +3,13 @@
   "description": "A Typescript REST Client API for the Solver",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@solver/database": "^1.0.0",
-    "@solver/services": "^1.0.0"
+    "@solver/services": "^1.0.0",
+    "@solver/server": "^1.0.0"
   }
 }
