@@ -6,13 +6,10 @@ const fastifyApp = Fastify({
   logger: true,
 });
 
-// Simulated checks for dependencies
-let isRedisConnected = false;
-
 
 const checkRedisConnection = async () => {
   // TODO: replace this with actual logic
-  return isRedisConnected;
+  return true;
 };
 
 // Liveness probe
