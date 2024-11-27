@@ -6,6 +6,35 @@ const fastifyApp = Fastify({
   logger: true,
 });
 
+// Simulated checks for dependencies
+let isRedisConnected = false;
+
+
+const checkRedisConnection = async () => {
+  // TODO: replace this with actual logic
+  return isRedisConnected;
+};
+
+// Liveness probe
+fastifyApp.get('/livez', async (request, reply) => {
+  reply.code(200).send('Alive');
+});
+
+// Readiness probe
+fastifyApp.get('/readyz', async (request, reply) => {
+  try {
+    const redisReady = await checkRedisConnection();
+
+    if (redisReady) {
+      reply.code(200).send('Ready');
+    } else {
+      reply.code(500).send('Not Ready');
+    }
+  } catch (error) {
+    reply.code(500).send('Not Ready');
+  }
+});
+
 // Register API routes with a `/api` prefix
 fastifyApp.register(setupRoutes, { prefix: "/api" });
 
