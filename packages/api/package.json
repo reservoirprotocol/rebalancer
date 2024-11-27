@@ -1,6 +1,6 @@
 {
-  "name": "@solver/api",
-  "description": "A Typescript REST Client API for the Solver",
+  "name": "@rebalancer/api",
+  "description": "A Typescript REST Client API for the Rebalancer",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@solver/database": "^1.0.0",
-    "@solver/services": "^1.0.0",
-    "@solver/server": "^1.0.0"
+    "@rebalancer/database": "^1.0.0",
+    "@rebalancer/services": "^1.0.0",
+    "@rebalancer/server": "^1.0.0"
   }
 }

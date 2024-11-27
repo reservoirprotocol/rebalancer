@@ -1,6 +1,6 @@
 {
-  "name": "@solver/database",
-  "description": "A Typescript Database Client for the Solver",
+  "name": "@rebalancer/database",
+  "description": "A Typescript Database Client for the Rebalancer",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@solver/api": "^1.0.0",
-    "@solver/services": "^1.0.0",
-    "@solver/utils": "^1.0.0"
+    "@rebalancer/api": "^1.0.0",
+    "@rebalancer/services": "^1.0.0",
+    "@rebalancer/utils": "^1.0.0"
   }
 }

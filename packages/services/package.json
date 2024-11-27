@@ -1,14 +1,10 @@
 {
-  "name": "@solver/services",
-  "description": "Services for the Solver",
+  "name": "@rebalancer/services",
+  "description": "Services for the Rebalancer",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js"
-  },
-  "dependencies": {
-    "@solver/api": "^1.0.0",
-    "@solver/database": "^1.0.0"
   }
 }

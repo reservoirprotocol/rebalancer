@@ -19,12 +19,12 @@ import { isEIP1559Network } from "./constants";
  * - It is responsible for signing transactions, submitting them to the network, and handling the response.
  * - If any RPC errors occur it is responsible for handling them appropriately.
  * - It also monitors the transaction pool and resubmits any transactions that has not been included in a block for a while.
- * - The service in its current form is supposed to be called when the solver needs to fill the order. In future
+ * - The service in its current form is supposed to be called when the rebalancer needs to fill the order. In future
  *   it can be extended to be used by other event listening services to trigger transactions when a particular blockchain event occurs.
  *
  */
 export class TransactionService implements ITransactionService {
-  private solver: Record<number, WalletClient> = {};
+  private rebalancer: Record<number, WalletClient> = {};
   private rpcClient: Record<number, PublicClient> = {};
 
   constructor() {
@@ -37,13 +37,14 @@ export class TransactionService implements ITransactionService {
       throw new Error("RPC_URLS environment variable is not set");
     }
 
-    const solverPrivateKey = process.env.SOLVER_PRIVATE_KEY! as `0x${string}`;
-    if (!solverPrivateKey) {
-      throw new Error("SOLVER_PRIVATE_KEY environment variable is not set");
+    const rebalancerPrivateKey = process.env
+      .REBALANCER_PRIVATE_KEY! as `0x${string}`;
+    if (!rebalancerPrivateKey) {
+      throw new Error("REBALANCER_PRIVATE_KEY environment variable is not set");
     }
     for (const chainId in rpcUrls) {
-      this.solver[chainId] = createWalletClient({
-        account: privateKeyToAccount(solverPrivateKey),
+      this.rebalancer[chainId] = createWalletClient({
+        account: privateKeyToAccount(rebalancerPrivateKey),
         transport: loadBalance(
           (rpcUrls[chainId] as string[]).map((url: string) => http(url)),
         ),
@@ -62,16 +63,17 @@ export class TransactionService implements ITransactionService {
     transaction: Partial<EIP1559RawTransaction> | Partial<LegacyRawTransaction>,
     chainId: number,
   ): Promise<`0x${string}`> {
-    const solver = this.solver[chainId];
+    const rebalancer = this.rebalancer[chainId];
     const rpcClient = this.rpcClient[chainId];
 
     // Fetch nonce, gas limit and gas price in parallel
     // we will reuse the maxFeePerGas to be the gas price for legacy transactions as an optimization
     const [nonce, gas, feeData] = await Promise.all([
       rpcClient.getTransactionCount({
-        address: solver.account!.address,
+        address: rebalancer.account!.address,
       }),
       rpcClient.estimateGas({
+        account: rebalancer.account,
         ...transaction,
       }),
       // Fetch both EIP1559 fees and gas price concurrently
@@ -88,8 +90,8 @@ export class TransactionService implements ITransactionService {
       (transaction as EIP1559RawTransaction).maxPriorityFeePerGas =
         feeData.maxPriorityFeePerGas;
 
-      const hash = await solver.sendTransaction({
-        account: solver.account!,
+      const hash = await rebalancer.sendTransaction({
+        account: rebalancer.account!,
         ...(transaction as EIP1559RawTransaction),
         chain: null,
         // This was a weird type error from viem, will remove this later
@@ -110,8 +112,8 @@ export class TransactionService implements ITransactionService {
       // fetch gas price
       (transaction as LegacyRawTransaction).gasPrice = feeData.maxFeePerGas;
 
-      const hash = await solver.sendTransaction({
-        account: solver.account!,
+      const hash = await rebalancer.sendTransaction({
+        account: rebalancer.account!,
         ...(transaction as LegacyRawTransaction),
         chain: null,
         // This was a weird type error from viem, will remove this later

@@ -1,32 +1,29 @@
-import * as express from "express";
-import fastify from "fastify";
-import {
-  errorHandler,
-  registerQuoteRoute,
-  registerSettleRoute,
-} from "@solver/api";
+import Fastify from "fastify";
+import { setupRoutes } from "@rebalancer/api";
+import * as dotenv from "dotenv";
 
-const app = express();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Mount Fastify instance
-const fastifyInstance = fastify({ logger: true });
-registerQuoteRoute(fastifyInstance);
-registerSettleRoute(fastifyInstance);
-
-app.use("/api", async (req: any, res: any, next: any) => {
-  await fastifyInstance.ready();
-  fastifyInstance.server.emit("request", req, res);
+const fastifyApp = Fastify({
+  logger: true,
 });
 
-// Global error handler
-app.use(errorHandler);
+// Register API routes with a `/api` prefix
+fastifyApp.register(setupRoutes, { prefix: "/api" });
 
-const PORT = process.env.PORT || 3000;
+// Start the server
+const startServer = async () => {
+  try {
+    const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+    const HOST = process.env.HOST || "0.0.0.0";
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+    await fastifyApp.listen({ port: PORT, host: HOST });
+    console.log(`Server is running at http://localhost:${PORT}/api`);
+  } catch (err) {
+    fastifyApp.log.error(err);
+    process.exit(1);
+  }
+};
+
+dotenv.config();
+
+// Run the server
+startServer();

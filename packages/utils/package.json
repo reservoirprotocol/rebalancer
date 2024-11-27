@@ -1,6 +1,6 @@
 {
-  "name": "@solver/utils",
-  "description": "A Typescript Utilities for the Solver",
+  "name": "@rebalancer/utils",
+  "description": "A Typescript Utilities for the Rebalancer",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@solver/api": "^1.0.0",
-    "@solver/services": "^1.0.0",
-    "@solver/database": "^1.0.0"
+    "@rebalancer/api": "^1.0.0",
+    "@rebalancer/services": "^1.0.0",
+    "@rebalancer/database": "^1.0.0"
   }
 }

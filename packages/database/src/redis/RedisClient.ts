@@ -1,13 +1,19 @@
 import { createClient, RedisClientType } from "redis";
-import { log } from "@solver/utils";
+import { log } from "@rebalancer/utils";
 
 export class RedisClient {
   private static instance: RedisClientType | null = null;
 
   // Initialize Redis connection
   private static async connect(): Promise<RedisClientType> {
+    const redisUrl = process.env.REDIS_URL;
+
+    if (!redisUrl) {
+      throw new Error("REDIS_URL is not set");
+    }
+
     const client = createClient({
-      url: process.env.REDIS_URL || "redis://localhost:6379",
+      url: redisUrl,
     });
 
     client.on("error", (err: { message: any }) =>
