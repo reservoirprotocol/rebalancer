@@ -6,7 +6,8 @@
       "@database": ["packages/database/src"],
       "@services": ["packages/services/src"],
       "@utils": ["packages/utils/src"],
-      "@server": ["packages/server/src"]
+      "@server": ["packages/server/src"],
+      "@types": ["packages/types/src"]
     },
     "module": "commonjs",
     "target": "es6",
