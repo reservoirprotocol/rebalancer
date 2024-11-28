@@ -2,7 +2,7 @@ import { GetPriceParams } from "@rebalancer/types";
 import { IPriceFeed } from "../interface";
 import { coinGeckoIds } from "./constants";
 import { parseUnits } from "viem";
-import axios = require("axios");
+import axios from "axios";
 
 export class CoinGecko implements IPriceFeed {
   private apiKey: string;
