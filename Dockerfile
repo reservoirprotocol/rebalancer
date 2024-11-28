@@ -27,4 +27,4 @@ WORKDIR /app/packages/server
 EXPOSE ${PORT}
 
 # Start the server
-RUN yarn start
+CMD yarn start
