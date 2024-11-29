@@ -3,6 +3,5 @@ export enum PriceFeedProvider {
 }
 
 export type GetPriceParams = {
-  inputToken: string;
-  outputToken: string;
+  token: string;
 };
