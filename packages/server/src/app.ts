@@ -6,29 +6,28 @@ const fastifyApp = Fastify({
   logger: true,
 });
 
-
 const checkRedisConnection = async () => {
   // TODO: replace this with actual logic
   return true;
 };
 
 // Liveness probe
-fastifyApp.get('/livez', async (request, reply) => {
-  reply.code(200).send('Alive');
+fastifyApp.get("/livez", async (request, reply) => {
+  reply.code(200).send("Alive");
 });
 
 // Readiness probe
-fastifyApp.get('/readyz', async (request, reply) => {
+fastifyApp.get("/readyz", async (request, reply) => {
   try {
     const redisReady = await checkRedisConnection();
 
     if (redisReady) {
-      reply.code(200).send('Ready');
+      reply.code(200).send("Ready");
     } else {
-      reply.code(500).send('Not Ready');
+      reply.code(500).send("Not Ready");
     }
   } catch (error) {
-    reply.code(500).send('Not Ready');
+    reply.code(500).send("Not Ready");
   }
 });
 

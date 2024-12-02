@@ -67,7 +67,7 @@ export class Quote {
 
     // Account we estimate should be the rebalancer address
     const account = privateKeyToAccount(
-      process.env.REBALANCER_PRIVATE_KEY as `0x${string}`
+      process.env.REBALANCER_PRIVATE_KEY as `0x${string}`,
     );
 
     const priceFeed = PriceFeed.getPriceFeed(PriceFeedProvider.COIN_GECKO);
@@ -102,7 +102,7 @@ export class Quote {
 
     const amountDestinationCurrency = Math.ceil(
       Number(this.amount) *
-        (Number(originCurrencyUsdPrice) / Number(destinationCurrencyUsdPrice))
+        (Number(originCurrencyUsdPrice) / Number(destinationCurrencyUsdPrice)),
     );
 
     if (this.destinationCurrency === "ETH") {
@@ -160,12 +160,14 @@ export class Quote {
       markUp = 0;
     }
 
-    const transactionFee = (Number(gasPrice) * Number(gasLimit)) / Math.pow(10, 18);
+    const transactionFee =
+      (Number(gasPrice) * Number(gasLimit)) / Math.pow(10, 18);
 
-    const fees =
-      Math.ceil(transactionFee *
-      (destinationCurrencyUsdPrice / nativeAssetUsdPrice) *
-      (1 + markUp));
+    const fees = Math.ceil(
+      transactionFee *
+        (destinationCurrencyUsdPrice / nativeAssetUsdPrice) *
+        (1 + markUp),
+    );
 
     return fees;
   }

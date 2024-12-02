@@ -28,16 +28,22 @@ export class CoinGecko implements IPriceFeed {
   private async getTokenUsdPrice(tokenId: string): Promise<number> {
     const USD_DECIMALS = 6;
 
-    return await axios.default.get(`https://api.coingecko.com/api/v3/simple/price?ids=${tokenId}&vs_currencies=usd`, {
-      headers: {
-        "x-cg-demo-api-key": this.apiKey,
+    return await axios.default
+      .get(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${tokenId}&vs_currencies=usd`,
+        {
+          headers: {
+            "x-cg-demo-api-key": this.apiKey,
+          },
         },
-      })
-      .then((response: { data: { [x: string]: { [x: string]: any; }; }; }) =>
-        Number(parseUnits(
-          Number(response.data[tokenId]["usd"]).toFixed(USD_DECIMALS),
-          USD_DECIMALS
-        ))
+      )
+      .then((response: { data: { [x: string]: { [x: string]: any } } }) =>
+        Number(
+          parseUnits(
+            Number(response.data[tokenId]["usd"]).toFixed(USD_DECIMALS),
+            USD_DECIMALS,
+          ),
+        ),
       );
   }
 
