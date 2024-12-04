@@ -7,7 +7,6 @@ import {
 } from "@rebalancer/services";
 import { RedisClient } from "@rebalancer/database";
 import { QuoteRequest } from "../quote/types";
-import { ERC20TokenMapping } from "../constants";
 
 export default {
   method: "POST",
@@ -46,7 +45,13 @@ export default {
       destinationChainId,
       amount,
       destinationCurrencyAddress,
+      originChainFees,
+      destinationOutputAmount,
     } = JSON.parse(transactionDetails) as QuoteRequest;
+
+    // TODO: We need to subtract the fees but this fees is in the origin chain currency
+    // We need to convert it to the destination chain currency here again
+    // const amountToTransfer = BigInt(amount) - BigInt(fees);
 
     let transaction:
       | Partial<EIP1559RawTransaction>
@@ -58,18 +63,19 @@ export default {
         value: BigInt(amount),
       };
     } else {
-      // TODO: Fetch this from redis too
-      const tokenAddress =
-        ERC20TokenMapping[destinationChainId][destinationCurrencyAddress];
+      // Hack to convert destinationOutputAmount to USDC amount
+      const destinationOutputAmountUsdc =
+        destinationOutputAmount * Math.pow(10, 6);
+
       // create ERC 20 transfer transaction
       const data = encodeFunctionData({
         abi: erc20Abi,
         functionName: "transfer",
-        args: [recipientAddress as `0x${string}`, BigInt(amount)],
+        args: [recipientAddress as `0x${string}`, BigInt(destinationOutputAmountUsdc)],
       });
 
       transaction = {
-        to: tokenAddress as `0x${string}`,
+        to: destinationCurrencyAddress as `0x${string}`,
         value: BigInt(0),
         data,
       };

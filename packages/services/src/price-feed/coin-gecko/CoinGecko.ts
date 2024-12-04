@@ -37,14 +37,9 @@ export class CoinGecko implements IPriceFeed {
           },
         },
       )
-      .then((response: { data: { [x: string]: { [x: string]: any } } }) =>
-        Number(
-          parseUnits(
-            Number(response.data[tokenId]["usd"]).toFixed(USD_DECIMALS),
-            USD_DECIMALS,
-          ),
-        ),
-      );
+      .then((response: { data: { [x: string]: { [x: string]: any } } }) => {
+        return Number(response.data[tokenId]["usd"])
+      });
   }
 
   private getTokenId(token: string): string {

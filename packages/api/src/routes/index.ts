@@ -9,5 +9,3 @@ export const setupRoutes = (fastify: FastifyInstance) => {
     fastify.route(route);
   });
 };
-
-export * from "./constants";

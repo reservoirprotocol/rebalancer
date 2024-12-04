@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { Quote } from "@rebalancer/services";
 import { RedisClient } from "@rebalancer/database";
 import { QuoteRequest } from "./types";
-import { QuoteParams } from "packages/services/dist/quote/types";
+import { privateKeyToAccount } from "viem/accounts";
 
 const hexPatternWith0x = "^0x[0-9a-fA-F]*$";
 
@@ -54,7 +54,8 @@ export default {
       200: {
         type: "object",
         properties: {
-          fees: { type: "number" },
+          originChainFees: { type: "number" },
+          destinationOutputAmount: { type: "number" },
           timeEstimate: { type: "number" },
           rebalancerAddress: { type: "string", pattern: hexPatternWith0x },
         },
@@ -72,10 +73,6 @@ export default {
       amount,
     } = request.body as QuoteRequest;
 
-    // Store the request details in Redis
-    const redisClient = await RedisClient.getInstance();
-    await redisClient.set(requestId, JSON.stringify(request.body));
-
     // Initialize the Quote instance
     const quote = new Quote({
       recipientAddress,
@@ -88,8 +85,35 @@ export default {
 
     // Generate the quote response
     const quoteResponse = await quote.getQuote();
+    
+    // Store the request details in Redis
+    const redisClient = await RedisClient.getInstance();
+    await redisClient.set(
+      requestId,
+      JSON.stringify({
+        requestId,
+        recipientAddress,
+        originChainId,
+        destinationChainId,
+        originCurrencyAddress,
+        destinationCurrencyAddress,
+        amount,
+        ...quoteResponse,
+      })
+    );
+
+    const rebalancerPrivateKey = process.env
+      .REBALANCER_PRIVATE_KEY! as `0x${string}`;
+    if (!rebalancerPrivateKey) {
+      throw new Error("REBALANCER_PRIVATE_KEY environment variable is not set");
+    }
+
+    const rebalancerAddress = privateKeyToAccount(rebalancerPrivateKey).address;
 
     // Send the response
-    return reply.send(quoteResponse);
+    return reply.send({
+      rebalancerAddress,
+      ...quoteResponse,
+    });
   },
 };

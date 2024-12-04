@@ -10,7 +10,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { QuoteParams } from "./types";
-import { blockTime, ERC20TokenMapping } from "./constants";
+import { blockTime } from "./constants";
 import { PriceFeed } from "../price-feed";
 import { PriceFeedProvider } from "@rebalancer/types";
 
@@ -73,7 +73,7 @@ export class Quote {
 
     const priceFeed = PriceFeed.getPriceFeed(PriceFeedProvider.COIN_GECKO);
 
-    const [destinationCurrencyUsdPrice, originCurrencyUsdPrice] =
+    const [destinationCurrencyUsdPrice, originCurrencyUsdPrice, nativeAssetUsdPrice] =
       await Promise.all([
         priceFeed.getPrice({
           token: this.destinationCurrencyAddress,
@@ -81,13 +81,28 @@ export class Quote {
         priceFeed.getPrice({
           token: this.originCurrencyAddress,
         }),
+        priceFeed.getPrice({
+          token: zeroAddress,
+        }),
       ]);
 
     /**
      * Destination currency is what rebalancer will pay for the swap
      * Origin currency is what rebalancer will receive by the bonded solver
-     * The fees we return should indicate how much unites of destination currency
-     * will the rebalancer pay for the operation
+     * The fees we return to the bonded solver should indicate how much units of origin chain currency
+     * will take as fees for the operation whose math is below:
+     * 
+     * Math: 
+     * 1 unit of origin currency = originCurrencyUsdPrice USD
+     * 1 unit of native asset = nativeAssetUsdPrice USD
+     * 1 USD = 1 / originCurrencyUsdPrice origin currency
+     * 1 USD = 1 / nativeAssetUsdPrice native asset
+     * By equating and simplifying, we get:
+     * 1 native asset = (originCurrencyUsdPrice / nativeAssetUsdPrice) origin currency
+     * fees = transactionFee * (originCurrencyUsdPrice / nativeAssetUsdPrice)
+     * 
+     * The amount to transfer to the bonded solver will be the destinationOutputAmount whose math
+     * is below:
      *
      * Math:
      * 1 unit of origin currency = originCurrencyUsdPrice USD
@@ -98,64 +113,43 @@ export class Quote {
      * 1 origin currency = (originCurrencyUsdPrice / destinationCurrencyUsdPrice) destination currency
      *
      * Now the amount of destination currency that rebalancer will pay for the operation is:
-     * amountDestinationCurrency = amount * (originCurrencyUsdPrice / destinationCurrencyUsdPrice)
+     * destinationOutputAmount = amount * (originCurrencyUsdPrice / destinationCurrencyUsdPrice)
      */
 
-    const amountDestinationCurrency = Math.ceil(
+    let destinationOutputAmount = Math.ceil(
       Number(this.amount) *
-        (Number(originCurrencyUsdPrice) / Number(destinationCurrencyUsdPrice)),
+        Number(originCurrencyUsdPrice) / (Number(destinationCurrencyUsdPrice) * Math.pow(10, 18)),
     );
 
     if (this.destinationCurrencyAddress === zeroAddress) {
       transactionObject = {
         account,
         to: this.recipientAddress as `0x${string}`,
-        value: BigInt(amountDestinationCurrency),
+        value: BigInt(destinationOutputAmount),
       };
     } else {
-      const tokenAddress =
-        ERC20TokenMapping[this.destinationChainId][
-          this.destinationCurrencyAddress
-        ];
       // create ERC 20 transfer function call data
       const data = encodeFunctionData({
         abi: erc20Abi,
         functionName: "transfer",
         args: [
           this.recipientAddress as `0x${string}`,
-          BigInt(amountDestinationCurrency),
+          BigInt(destinationOutputAmount),
         ],
       });
 
       transactionObject = {
         account,
-        to: tokenAddress as `0x${string}`,
+        to: this.destinationCurrencyAddress as `0x${string}`,
         value: BigInt(0),
         data,
       };
     }
+    
     const [gasLimit, gasPrice] = await Promise.all([
       this.rpcClient[this.destinationChainId].estimateGas(transactionObject),
       this.rpcClient[this.destinationChainId].getGasPrice(),
     ]);
-
-    /**
-     * Now the fees that the rebalancer will quote will be in units of the destination currency
-     * For that we will do a similar math like above but origin currency will be set to native asset of the chain
-     * That is because the fees will be in units of the native asset of the chain
-     *
-     * Math:
-     * 1 native asset = nativeAssetUsdPrice USD
-     * 1 USD = 1 / nativeAssetUsdPrice native asset
-     * 1 unit of destination currency = destinationCurrencyUsdPrice USD
-     * 1 native asset = destinationCurrencyUsdPrice / nativeAssetUsdPrice destination currency
-     *
-     * fees = gasLimit * gasPrice * (destinationCurrencyUsdPrice / nativeAssetUsdPrice) * (1 + markUp)
-     */
-
-    const nativeAssetUsdPrice = await priceFeed.getPrice({
-      token: "ETH",
-    });
 
     let markUp = Number(process.env.MARK_UP as string);
 
@@ -166,13 +160,14 @@ export class Quote {
     const transactionFee =
       (Number(gasPrice) * Number(gasLimit)) / Math.pow(10, 18);
 
-    const fees = Math.ceil(
-      transactionFee *
-        (destinationCurrencyUsdPrice / nativeAssetUsdPrice) *
-        (1 + markUp),
-    );
+    const originChainFees =
+      transactionFee * (originCurrencyUsdPrice / nativeAssetUsdPrice) *
+      (1 + markUp);
 
-    return fees;
+    return {
+      originChainFees,
+      destinationOutputAmount,
+    };
   }
 
   /**
@@ -188,7 +183,7 @@ export class Quote {
    */
   public async getQuote() {
     return {
-      fees: await this.calculateFees(),
+      ...(await this.calculateFees()),
       timeEstimate: this.estimateTime(),
     };
   }

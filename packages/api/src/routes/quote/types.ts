@@ -6,4 +6,6 @@ export type QuoteRequest = {
   originCurrencyAddress: string;
   destinationCurrencyAddress: string;
   amount: string;
+  originChainFees: number;
+  destinationOutputAmount: number;
 };
