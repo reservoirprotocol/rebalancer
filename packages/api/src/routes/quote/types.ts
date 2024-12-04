@@ -3,7 +3,7 @@ export type QuoteRequest = {
   recipientAddress: string;
   originChainId: number;
   destinationChainId: number;
-  originCurrency: string;
-  destinationCurrency: string;
+  originCurrencyAddress: string;
+  destinationCurrencyAddress: string;
   amount: string;
 };

@@ -3,6 +3,6 @@ export type QuoteParams = {
   originChainId: number;
   destinationChainId: number;
   amount: string;
-  originCurrency: string;
-  destinationCurrency: string;
+  originCurrencyAddress: string;
+  destinationCurrencyAddress: string;
 };

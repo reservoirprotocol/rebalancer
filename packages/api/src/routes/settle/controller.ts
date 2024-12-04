@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { encodeFunctionData, erc20Abi } from "viem";
+import { encodeFunctionData, erc20Abi, zeroAddress } from "viem";
 import {
   TransactionService,
   EIP1559RawTransaction,
@@ -45,14 +45,14 @@ export default {
       recipientAddress,
       destinationChainId,
       amount,
-      destinationCurrency,
+      destinationCurrencyAddress,
     } = JSON.parse(transactionDetails) as QuoteRequest;
 
     let transaction:
       | Partial<EIP1559RawTransaction>
       | Partial<LegacyRawTransaction>;
 
-    if (destinationCurrency === "ETH") {
+    if (destinationCurrencyAddress === zeroAddress) {
       transaction = {
         to: recipientAddress as `0x${string}`,
         value: BigInt(amount),
@@ -60,7 +60,7 @@ export default {
     } else {
       // TODO: Fetch this from redis too
       const tokenAddress =
-        ERC20TokenMapping[destinationChainId][destinationCurrency];
+        ERC20TokenMapping[destinationChainId][destinationCurrencyAddress];
       // create ERC 20 transfer transaction
       const data = encodeFunctionData({
         abi: erc20Abi,

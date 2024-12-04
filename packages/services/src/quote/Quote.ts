@@ -6,6 +6,7 @@ import {
   encodeFunctionData,
   Chain,
   EstimateGasParameters,
+  zeroAddress,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { QuoteParams } from "./types";
@@ -17,8 +18,8 @@ export class Quote {
   private recipientAddress: string;
   private destinationChainId: number;
   private amount: string;
-  private destinationCurrency: string;
-  private originCurrency: string;
+  private destinationCurrencyAddress: string;
+  private originCurrencyAddress: string;
   private rpcClient: Record<number, PublicClient> = {};
 
   constructor(quoteParams: QuoteParams) {
@@ -26,14 +27,14 @@ export class Quote {
       recipientAddress,
       destinationChainId,
       amount,
-      destinationCurrency,
-      originCurrency,
+      destinationCurrencyAddress,
+      originCurrencyAddress,
     } = quoteParams;
     this.recipientAddress = recipientAddress;
     this.destinationChainId = destinationChainId;
     this.amount = amount;
-    this.destinationCurrency = destinationCurrency;
-    this.originCurrency = originCurrency;
+    this.destinationCurrencyAddress = destinationCurrencyAddress;
+    this.originCurrencyAddress = originCurrencyAddress;
 
     let rpcUrls = JSON.parse(process.env.RPC_URLS ?? "{}") as Record<
       number,
@@ -75,10 +76,10 @@ export class Quote {
     const [destinationCurrencyUsdPrice, originCurrencyUsdPrice] =
       await Promise.all([
         priceFeed.getPrice({
-          token: this.destinationCurrency,
+          token: this.destinationCurrencyAddress,
         }),
         priceFeed.getPrice({
-          token: this.originCurrency,
+          token: this.originCurrencyAddress,
         }),
       ]);
 
@@ -105,7 +106,7 @@ export class Quote {
         (Number(originCurrencyUsdPrice) / Number(destinationCurrencyUsdPrice)),
     );
 
-    if (this.destinationCurrency === "ETH") {
+    if (this.destinationCurrencyAddress === zeroAddress) {
       transactionObject = {
         account,
         to: this.recipientAddress as `0x${string}`,
@@ -113,7 +114,9 @@ export class Quote {
       };
     } else {
       const tokenAddress =
-        ERC20TokenMapping[this.destinationChainId][this.destinationCurrency];
+        ERC20TokenMapping[this.destinationChainId][
+          this.destinationCurrencyAddress
+        ];
       // create ERC 20 transfer function call data
       const data = encodeFunctionData({
         abi: erc20Abi,

@@ -2,6 +2,9 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { Quote } from "@rebalancer/services";
 import { RedisClient } from "@rebalancer/database";
 import { QuoteRequest } from "./types";
+import { QuoteParams } from "packages/services/dist/quote/types";
+
+const hexPatternWith0x = "^0x[0-9a-fA-F]*$";
 
 export default {
   method: "POST",
@@ -14,19 +17,22 @@ export default {
         recipientAddress: {
           type: "string",
           description: "Address of the bonded solver/filler",
+          pattern: hexPatternWith0x,
         },
-        originChainId: { type: "number", description: "Origin chain ID" },
+        originChainId: { type: "number", description: "Origin chainId" },
         destinationChainId: {
           type: "number",
-          description: "Destination chain ID",
+          description: "Destination chainId",
         },
-        originCurrency: {
+        originCurrencyAddress: {
           type: "string",
-          description: "Origin chain currency",
+          description: "Origin chain currency address",
+          pattern: hexPatternWith0x,
         },
-        destinationCurrency: {
+        destinationCurrencyAddress: {
           type: "string",
-          description: "Destination chain currency",
+          description: "Destination chain currency address",
+          pattern: hexPatternWith0x,
         },
         amount: {
           type: "string",
@@ -39,8 +45,8 @@ export default {
         "recipientAddress",
         "originChainId",
         "destinationChainId",
-        "originCurrency",
-        "destinationCurrency",
+        "originCurrencyAddress",
+        "destinationCurrencyAddress",
         "amount",
       ],
     },
@@ -50,6 +56,7 @@ export default {
         properties: {
           fees: { type: "number" },
           timeEstimate: { type: "number" },
+          rebalancerAddress: { type: "string", pattern: hexPatternWith0x },
         },
       },
     },
@@ -60,8 +67,8 @@ export default {
       recipientAddress,
       originChainId,
       destinationChainId,
-      originCurrency,
-      destinationCurrency,
+      originCurrencyAddress,
+      destinationCurrencyAddress,
       amount,
     } = request.body as QuoteRequest;
 
@@ -75,8 +82,8 @@ export default {
       originChainId,
       destinationChainId,
       amount,
-      originCurrency,
-      destinationCurrency,
+      originCurrencyAddress,
+      destinationCurrencyAddress,
     });
 
     // Generate the quote response
