@@ -93,6 +93,6 @@ jobs:
         working-directory: k8s-configs
         run: |
           ./utils/version_update.sh \
-            ./prod/platform/solver-rebalancer-testnets.yaml \
+            ./prod/platform/rebalancer-testnets.yaml \
             ${{ github.sha }} \
-            solver-rebalancer-testnets
+            rebalancer-testnets
