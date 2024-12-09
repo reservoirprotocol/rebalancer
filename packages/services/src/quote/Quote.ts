@@ -73,26 +73,29 @@ export class Quote {
 
     const priceFeed = PriceFeed.getPriceFeed(PriceFeedProvider.COIN_GECKO);
 
-    const [destinationCurrencyUsdPrice, originCurrencyUsdPrice, nativeAssetUsdPrice] =
-      await Promise.all([
-        priceFeed.getPrice({
-          token: this.destinationCurrencyAddress,
-        }),
-        priceFeed.getPrice({
-          token: this.originCurrencyAddress,
-        }),
-        priceFeed.getPrice({
-          token: zeroAddress,
-        }),
-      ]);
+    const [
+      destinationCurrencyUsdPrice,
+      originCurrencyUsdPrice,
+      nativeAssetUsdPrice,
+    ] = await Promise.all([
+      priceFeed.getPrice({
+        token: this.destinationCurrencyAddress,
+      }),
+      priceFeed.getPrice({
+        token: this.originCurrencyAddress,
+      }),
+      priceFeed.getPrice({
+        token: zeroAddress,
+      }),
+    ]);
 
     /**
      * Destination currency is what rebalancer will pay for the swap
      * Origin currency is what rebalancer will receive by the bonded solver
      * The fees we return to the bonded solver should indicate how much units of origin chain currency
      * will take as fees for the operation whose math is below:
-     * 
-     * Math: 
+     *
+     * Math:
      * 1 unit of origin currency = originCurrencyUsdPrice USD
      * 1 unit of native asset = nativeAssetUsdPrice USD
      * 1 USD = 1 / originCurrencyUsdPrice origin currency
@@ -100,7 +103,7 @@ export class Quote {
      * By equating and simplifying, we get:
      * 1 native asset = (originCurrencyUsdPrice / nativeAssetUsdPrice) origin currency
      * fees = transactionFee * (originCurrencyUsdPrice / nativeAssetUsdPrice)
-     * 
+     *
      * The amount to transfer to the bonded solver will be the destinationOutputAmount whose math
      * is below:
      *
@@ -117,8 +120,8 @@ export class Quote {
      */
 
     let destinationOutputAmount = Math.ceil(
-      Number(this.amount) *
-        Number(originCurrencyUsdPrice) / (Number(destinationCurrencyUsdPrice) * Math.pow(10, 18)),
+      (Number(this.amount) * Number(originCurrencyUsdPrice)) /
+        (Number(destinationCurrencyUsdPrice) * Math.pow(10, 18)),
     );
 
     if (this.destinationCurrencyAddress === zeroAddress) {
@@ -145,7 +148,7 @@ export class Quote {
         data,
       };
     }
-    
+
     const [gasLimit, gasPrice] = await Promise.all([
       this.rpcClient[this.destinationChainId].estimateGas(transactionObject),
       this.rpcClient[this.destinationChainId].getGasPrice(),
@@ -161,7 +164,8 @@ export class Quote {
       (Number(gasPrice) * Number(gasLimit)) / Math.pow(10, 18);
 
     const originChainFees =
-      transactionFee * (originCurrencyUsdPrice / nativeAssetUsdPrice) *
+      transactionFee *
+      (originCurrencyUsdPrice / nativeAssetUsdPrice) *
       (1 + markUp);
 
     return {

@@ -38,7 +38,7 @@ export class CoinGecko implements IPriceFeed {
         },
       )
       .then((response: { data: { [x: string]: { [x: string]: any } } }) => {
-        return Number(response.data[tokenId]["usd"])
+        return Number(response.data[tokenId]["usd"]);
       });
   }
 

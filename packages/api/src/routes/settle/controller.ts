@@ -71,7 +71,10 @@ export default {
       const data = encodeFunctionData({
         abi: erc20Abi,
         functionName: "transfer",
-        args: [recipientAddress as `0x${string}`, BigInt(destinationOutputAmountUsdc)],
+        args: [
+          recipientAddress as `0x${string}`,
+          BigInt(destinationOutputAmountUsdc),
+        ],
       });
 
       transaction = {

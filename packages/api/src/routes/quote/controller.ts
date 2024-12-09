@@ -85,7 +85,7 @@ export default {
 
     // Generate the quote response
     const quoteResponse = await quote.getQuote();
-    
+
     // Store the request details in Redis
     const redisClient = await RedisClient.getInstance();
     await redisClient.set(
@@ -99,7 +99,7 @@ export default {
         destinationCurrencyAddress,
         amount,
         ...quoteResponse,
-      })
+      }),
     );
 
     const rebalancerPrivateKey = process.env
