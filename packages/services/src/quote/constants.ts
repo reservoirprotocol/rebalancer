@@ -4,6 +4,6 @@ export const blockTime = {
   42161: 2, // Arbitrum
   10: 2, // Optimism
   8453: 2, // Base
-  84532: 2, // Arbitrum Sepolia
-  11155420: 2, // Optimism Sepolia
+  84532: 2, // Base Sepolia
+  11155111: 2, // Sepolia
 };
