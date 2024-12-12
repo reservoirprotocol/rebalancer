@@ -1,6 +1,6 @@
-# Rebalancer Backend Service
+# Rebalancer
 
-The **Rebalancer Backend Service** facilitates the **Rebalancing** workflow, enabling secure and efficient execution of orders proposed by bonded Fillers. This service exclusively handles Rebalancing, while all Filling operations are managed by an external service.
+The **Rebalancer** facilitates the **Rebalancing** workflow, enabling secure and efficient execution of rebalancing operations for solvers that might not have liquidity to fill orders themselves.
 
 ---
 
@@ -8,41 +8,63 @@ The **Rebalancer Backend Service** facilitates the **Rebalancing** workflow, ena
 
 The Rebalancing workflow operates as follows:
 
-1. **Filler Requests Quote**  
-   The Filler sends a request for an indicative price.
-
-2. **Rebalancer Provides Indicative Price**  
-   The Rebalancer responds with an indicative quote for the requested operation.
-
-3. **Filler Provides Signed Order**  
-   The Filler generates and submits a signed order to the Rebalancer.
-
-4. **Rebalancer Executes Order**  
-   The Rebalancer validates the signed order and executes it, ensuring that the Filler is bonded and compliant.
+![Diagram](./images/Workflow.png)
 
 ---
 
-## **Key Features**
+## **Installation and Setup**
 
-- Supports **Rebalancing** only.
-- Validates bonding requirements for all Fillers.
-- Provides indicative pricing and executes signed orders from bonded Fillers.
+First setup the environment variables by creating a `.env` file in the root directory. The `.env` file should contain the following variables:
 
----
+```
+# Mapping of chain ids to RPC URLs that will be used to load balance requests between them in a round robin fashion
+# The first RPC in the array is used to estimate gas and fetching the gas price
+RPC_URLS={"1": [], "10": []}
 
-## **Key Requirements**
+# Private key of the rebalancer wallet
+REBALANCER_PRIVATE_KEY=
 
-- The **Filler** must be **bonded** to ensure accountability and trust.
-- The Rebalancer service does not handle Filling operations; those are managed by an external service.
+# Markup over the fees to be added to the fees
+MARK_UP==
 
----
+# Redis URL
+REDIS_URL=
 
-## **Usage**
+# CoinGecko API Key
+COIN_GECKO_API_KEY=
+```
+Now you can install the dependencies and run the project using the following commands:
 
-The Rebalancer Backend Service provides APIs for:
+### Using Docker Compose
 
-- Requesting indicative quotes.
-- Submitting signed orders.
-- Executing validated rebalancing operations.
+Navigate to the root directory and run the following command:
 
-For more details, refer to the implementation and API documentation.
+```
+docker compose up
+```
+
+### Using Yarn
+
+```
+yarn install
+yarn run build
+yarn run start
+```
+
+
+## **Overview**
+
+The entire project is built using modular packages. The packages are as follows:
+
+- **Server**: The server is the entry point for the application. It sets up the express server along with the necessary middlewares and routes.
+- **Api**: The api is the collection of all the routes for the application. It currently has `/quote` and `/settle`
+routes, that are used to get quotes and settle orders respectively.
+- **Services**: The services are the core of the application. They are responsible for the business logic of the application. There are 3 services:
+  - **Quote Service**: The quote service is responsible for getting quotes for the orders and is used by the `/quote` route.
+  - **Transaction Service**: The transaction service is responsible for getting the transaction details for the orders and is used by the `/settle` route.
+  - **Price Feed Service**: The price feed service is responsible for getting the price feed for the orders and is 
+  used in the other two services.
+- **Database**: The database is used to store requests received from the `/quote` route to be used in the `/settle` route. Currently the database is a Redis instance.
+- **Types**: The types are the typescript types that are used throughout the application.
+- **Utils**: The utils are the utility functions that are used throughout the application.
+
