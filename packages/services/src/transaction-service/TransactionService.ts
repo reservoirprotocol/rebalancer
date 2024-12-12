@@ -69,10 +69,7 @@ export class TransactionService implements ITransactionService {
     // Fetch nonce, gas limit and gas price in parallel
     // we will reuse the maxFeePerGas to be the gas price for legacy transactions as an optimization
     const [nonce, gas, feeData] = await Promise.all([
-      rpcClient.getTransactionCount({
-        address: rebalancer.account!.address,
-      }),
-      rpcClient.estimateGas({
+      rpcClient.getTransactionCount({address: rebalancer.account!.address,}), rpcClient.estimateGas({
         account: rebalancer.account,
         ...transaction,
       }),
