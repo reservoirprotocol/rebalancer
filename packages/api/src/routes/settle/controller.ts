@@ -56,7 +56,7 @@ export default {
     if (destinationCurrencyAddress === zeroAddress) {
       transaction = {
         to: recipientAddress as `0x${string}`,
-        value: BigInt(destinationOutputAmount),
+        value: BigInt(destinationOutputAmount * 10 ** 18),
       };
     } else {
       // Hack to convert destinationOutputAmount to USDC amount
