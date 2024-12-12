@@ -119,16 +119,15 @@ export class Quote {
      * destinationOutputAmount = amount * (originCurrencyUsdPrice / destinationCurrencyUsdPrice)
      */
 
-    let destinationOutputAmount = Math.ceil(
+    let destinationOutputAmount =
       (Number(this.amount) * Number(originCurrencyUsdPrice)) /
-        (Number(destinationCurrencyUsdPrice) * Math.pow(10, 18)),
-    );
+      (Number(destinationCurrencyUsdPrice) * Math.pow(10, 18));
 
     if (this.destinationCurrencyAddress === zeroAddress) {
       transactionObject = {
         account,
         to: this.recipientAddress as `0x${string}`,
-        value: BigInt(destinationOutputAmount),
+        value: BigInt(Math.ceil(destinationOutputAmount)),
       };
     } else {
       // create ERC 20 transfer function call data
@@ -137,7 +136,7 @@ export class Quote {
         functionName: "transfer",
         args: [
           this.recipientAddress as `0x${string}`,
-          BigInt(destinationOutputAmount),
+          BigInt(Math.ceil(destinationOutputAmount)),
         ],
       });
 
