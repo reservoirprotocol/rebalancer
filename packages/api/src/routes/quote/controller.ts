@@ -54,7 +54,7 @@ export default {
       200: {
         type: "object",
         properties: {
-          originChainFees: { type: "number" },
+          fees: { type: "number" },
           destinationOutputAmount: { type: "number" },
           timeEstimate: { type: "number" },
           rebalancerAddress: { type: "string", pattern: hexPatternWith0x },

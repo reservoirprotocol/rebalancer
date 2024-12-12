@@ -45,13 +45,10 @@ export default {
       destinationChainId,
       amount,
       destinationCurrencyAddress,
-      originChainFees,
       destinationOutputAmount,
-    } = JSON.parse(transactionDetails) as QuoteRequest;
-
-    // TODO: We need to subtract the fees but this fees is in the origin chain currency
-    // We need to convert it to the destination chain currency here again
-    // const amountToTransfer = BigInt(amount) - BigInt(fees);
+    } = JSON.parse(transactionDetails) as QuoteRequest & {
+      destinationOutputAmount: number;
+    };
 
     let transaction:
       | Partial<EIP1559RawTransaction>
@@ -60,7 +57,7 @@ export default {
     if (destinationCurrencyAddress === zeroAddress) {
       transaction = {
         to: recipientAddress as `0x${string}`,
-        value: BigInt(amount),
+        value: BigInt(destinationOutputAmount),
       };
     } else {
       // Hack to convert destinationOutputAmount to USDC amount

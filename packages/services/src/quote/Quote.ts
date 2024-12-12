@@ -163,13 +163,15 @@ export class Quote {
     const transactionFee =
       (Number(gasPrice) * Number(gasLimit)) / Math.pow(10, 18);
 
-    const originChainFees =
+    const fees =
       transactionFee *
       (originCurrencyUsdPrice / nativeAssetUsdPrice) *
       (1 + markUp);
 
+    destinationOutputAmount = destinationOutputAmount - fees;
+
     return {
-      originChainFees,
+      fees,
       destinationOutputAmount,
     };
   }
