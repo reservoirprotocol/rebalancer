@@ -43,7 +43,6 @@ export default {
     const {
       recipientAddress,
       destinationChainId,
-      amount,
       destinationCurrencyAddress,
       destinationOutputAmount,
     } = JSON.parse(transactionDetails) as QuoteRequest & {
