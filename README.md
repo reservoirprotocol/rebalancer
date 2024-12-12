@@ -68,3 +68,13 @@ routes, that are used to get quotes and settle orders respectively.
 - **Types**: The types are the typescript types that are used throughout the application.
 - **Utils**: The utils are the utility functions that are used throughout the application.
 
+## Supported Chains
+
+The project currently supports the following chains:
+
+- Optimism
+- Arbitrum
+- Base Sepolia
+- Sepolia
+
+
